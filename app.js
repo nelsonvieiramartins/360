@@ -164,6 +164,102 @@
   tlSecObs.observe($('.tl'));
   steps.forEach((s,i)=>s.addEventListener('click',()=>{ tlIdx=i; clearInterval(tlTimer); tlTimer=setInterval(()=>{ tlIdx=(tlIdx+1)%steps.length; setStep(tlIdx); },4200); }));
 
+  /* ---- Timeline mobile carousel ---- */
+  (function(){
+    const mob=$('#tl-mob');
+    if(!mob) return;
+    const chk='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    const arrL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+    const arrR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+
+    mob.innerHTML=`
+      <div class="tl__mob-viewport">
+        <div class="tl__mob-track" id="tlm-track">
+          ${tlData.map((d,i)=>`
+            <div class="tl__mob-card">
+              <span class="tl__mob-tag">${d.tag}</span>
+              <h3 class="tl__mob-title">${d.h}</h3>
+              <div class="tl__mob-img"><img src="assets/etapa0${i+1}.png" alt="${d.h}" loading="lazy"></div>
+              <div class="tl__mob-body">
+                <p>${d.p}</p>
+                <ul>${d.li.map(t=>`<li>${chk}${t}</li>`).join('')}</ul>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>
+      <div class="tl__mob-nav">
+        <button class="tl__mob-arr" id="tlm-prev" aria-label="Anterior">${arrL}</button>
+        <div class="tl__mob-dots" id="tlm-dots">
+          ${tlData.map((_,i)=>`<button aria-label="Etapa ${i+1}"></button>`).join('')}
+        </div>
+        <button class="tl__mob-arr" id="tlm-next" aria-label="Próximo">${arrR}</button>
+      </div>`;
+
+    const track=$('#tlm-track');
+    const dots=$$('#tlm-dots button');
+    const prev=$('#tlm-prev');
+    const next=$('#tlm-next');
+    const vp=mob.querySelector('.tl__mob-viewport');
+    let idx=0;
+
+    function goTo(i){
+      idx=Math.max(0,Math.min(i,tlData.length-1));
+      track.style.transform=`translateX(-${idx*vp.offsetWidth}px)`;
+      dots.forEach((d,k)=>d.classList.toggle('active',k===idx));
+      prev.disabled=idx===0;
+      next.disabled=idx===tlData.length-1;
+    }
+
+    prev.addEventListener('click',()=>goTo(idx-1));
+    next.addEventListener('click',()=>goTo(idx+1));
+    dots.forEach((d,i)=>d.addEventListener('click',()=>goTo(i)));
+
+    // swipe
+    let tx=0;
+    mob.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+    mob.addEventListener('touchend',e=>{
+      const dx=tx-e.changedTouches[0].clientX;
+      if(Math.abs(dx)>44) goTo(idx+(dx>0?1:-1));
+    },{passive:true});
+
+    // recalc on resize (e.g. orientation change)
+    window.addEventListener('resize',()=>goTo(idx),{passive:true});
+
+    goTo(0);
+  })();
+
+  /* ---- Mapa de cobertura (Leaflet + OpenStreetMap) ---- */
+  if(typeof L!=='undefined' && document.getElementById('cov-map')){
+    const covMap=L.map('cov-map',{scrollWheelZoom:false,zoomControl:true,attributionControl:true})
+      .setView([-16.72,-49.27],11);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+      attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+      maxZoom:19,subdomains:'abcd'
+    }).addTo(covMap);
+
+    const mkIcon=(main)=>L.divIcon({
+      className:'',
+      html:`<div class="map-pin ${main?'main':'sec'}" style="width:${main?26:18}px;height:${main?26:18}px"></div>`,
+      iconSize:[main?26:18,main?26:18],
+      iconAnchor:[main?13:9,main?26:18],
+      popupAnchor:[0,-20]
+    });
+
+    [
+      {lat:-16.6869,lng:-49.2648,name:'Goiânia',main:true},
+      {lat:-16.8233,lng:-49.2446,name:'Aparecida de Goiânia',main:false},
+      {lat:-16.6466,lng:-49.4925,name:'Trindade',main:false},
+      {lat:-16.7106,lng:-49.0904,name:'Senador Canedo',main:false},
+      {lat:-16.5620,lng:-49.3200,name:'Goianira',main:false}
+    ].forEach(p=>{
+      L.marker([p.lat,p.lng],{icon:mkIcon(p.main)})
+        .addTo(covMap)
+        .bindPopup(`<b>${p.name}</b>`)
+        .on('mouseover',function(){ this.openPopup(); });
+    });
+  }
+
   /* ---- Diferencial: diagrama radial + lente ---- */
   const orbit=$('#orbit'), oSvg=$('#orbitSvg'), oNodes=$('#orbitNodes'), oLens=$('#orbitLens'), difGrid=$('#difGrid');
   const I={

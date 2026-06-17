@@ -481,12 +481,15 @@ h1,h2,h3,h4{font-family:var(--font-d);color:var(--ink);line-height:1.08;letter-s
 
 /* ---------------- COBERTURA ---------------- */
 .cov{display:grid;grid-template-columns:1fr 1.1fr;gap:48px;align-items:center;margin-top:54px}
-.cov__map{position:relative;aspect-ratio:4/3;border-radius:var(--radius-lg);overflow:hidden;background:var(--soft-2);border:1px solid var(--line)}
-.cov__map .ph{position:absolute;inset:0;border:none;border-radius:0}
-.cov__pin{position:absolute;width:18px;height:18px;border-radius:50% 50% 50% 0;background:var(--red);transform:translate(-50%,-50%) rotate(-45deg);box-shadow:0 4px 10px rgba(228,32,25,.5)}
-.cov__pin::after{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%}
-.cov__pin.main{width:26px;height:26px;background:var(--blue);box-shadow:0 0 0 8px rgba(19,121,189,.18),0 4px 12px rgba(19,121,189,.5)}
-.cov__pin.main::after{inset:7px}
+.cov__map{position:relative;aspect-ratio:4/3;border-radius:var(--radius-lg);overflow:hidden;background:var(--soft-2);border:1px solid var(--line);min-height:280px}
+#cov-map{width:100%;height:100%;position:absolute;inset:0;z-index:1}
+/* custom map pin elements */
+.map-pin{border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid #fff}
+.map-pin.main{background:#1379BD;box-shadow:0 0 0 7px rgba(19,121,189,.22),0 4px 12px rgba(19,121,189,.45)}
+.map-pin.sec{background:#E42019;box-shadow:0 3px 8px rgba(228,32,25,.45)}
+/* leaflet popup style */
+.leaflet-popup-content-wrapper{border-radius:10px;box-shadow:0 8px 24px rgba(16,32,50,.14);font-family:'Plus Jakarta Sans',system-ui,sans-serif}
+.leaflet-popup-content{font-size:14px;font-weight:600;color:#16202e;margin:10px 14px}
 .cities{display:flex;flex-direction:column;gap:12px;margin:28px 0}
 .city{display:flex;align-items:center;gap:13px;font-weight:600;color:var(--ink);font-size:16.5px}
 .city svg{width:20px;height:20px;color:var(--blue);flex:none}
@@ -574,6 +577,7 @@ h1,h2,h3,h4{font-family:var(--font-d);color:var(--ink);line-height:1.08;letter-s
 @media (max-width:980px){
   .nav__links,.nav-solicitar{display:none}
   .nav__burger{display:flex}
+  .nav__cta .btn--wa{display:none}
 }
 @media (max-width:860px){
   .why{grid-template-columns:1fr;max-width:520px}
@@ -610,11 +614,115 @@ h1,h2,h3,h4{font-family:var(--font-d);color:var(--ink);line-height:1.08;letter-s
   .dif-mlogo{display:block;width:230px;margin:8px auto 26px}
   .dif-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
   .dif-card{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px}
-  .dif-card .node__ic{width:46px;height:46px}
+  .dif-card .node__ic{width:46px;height:46px;flex:none}
   .dif-card .node__ic svg{width:22px;height:22px}
   .dif-card .node__ic img{width:30px;height:30px}
-  .dif-card .node__lb{font-size:15px;white-space:normal}
+  .dif-card .node__lb{position:static;transform:none;font-size:14px;font-weight:600;white-space:normal;color:#c4d4e6;line-height:1.3}
   .dif-stats{grid-template-columns:1fr;gap:12px;margin-top:36px}
   .case__save .n{font-size:24px}
   .ps-card{padding:28px 24px}
+}
+
+/* ====== MOBILE-ONLY IMPROVEMENTS (desktop untouched) ====== */
+
+/* Remove 300ms tap delay on all interactive elements */
+a,button,.btn,.sim__seg,.chip,.qa__q,.tst__arrows button,.drawer a,
+input[type=range],.sim__yr-btn{touch-action:manipulation}
+
+/* Hero video: fill full width on mobile so no dark gap appears on left */
+@media (max-width:860px){
+  .hero__video{width:100%;left:0}
+  .hero__scroll{display:none}
+}
+
+/* Simulator form: reduce padding on small screens */
+@media (max-width:640px){
+  .sim__form{padding:24px 20px}
+  .sim__result{padding:24px 20px}
+  .sim__metrics{grid-template-columns:1fr}
+  .sim__gauge-ring{max-width:300px}
+}
+
+/* Footer: single column on mobile */
+@media (max-width:640px){
+  .foot__top{grid-template-columns:1fr}
+  .foot__brand{grid-column:auto}
+  .foot__bottom{flex-direction:column;gap:10px;text-align:center}
+}
+
+/* Simulator segments: 2-col grid on small phones */
+@media (max-width:480px){
+  .sim__segs{grid-template-columns:repeat(2,1fr)}
+  .sim__mkt-labels{font-size:11px}
+  .sim__yr-btn{padding:11px 18px}
+}
+
+/* Very small screens (375px) */
+@media (max-width:390px){
+  .wrap{padding:0 16px}
+  .btn--lg{padding:16px 24px;font-size:15.5px}
+  .hstat{padding:12px 14px}
+  .hero__stats{gap:8px}
+}
+
+/* ---- Timeline mobile carousel ---- */
+.tl__mob{display:none}
+
+@media (max-width:640px){
+  /* hide desktop track + panel */
+  .tl__track,.tl__panel{display:none!important}
+
+  /* show carousel */
+  .tl__mob{display:block;margin-top:28px}
+
+  .tl__mob-viewport{overflow:hidden;border-radius:var(--radius-lg)}
+  .tl__mob-track{display:flex;transition:transform .42s var(--ease);will-change:transform}
+  .tl__mob-card{
+    flex:0 0 100%;min-width:0;
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius-lg);
+    padding:22px 20px 26px;box-shadow:var(--shadow-sm);
+  }
+  .tl__mob-tag{
+    display:block;font-family:var(--font-d);font-weight:700;font-size:11px;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--red);margin-bottom:10px
+  }
+  .tl__mob-title{
+    font-family:var(--font-d);font-weight:800;font-size:22px;
+    color:var(--ink);margin-bottom:16px;line-height:1.15
+  }
+  .tl__mob-img{
+    aspect-ratio:16/9;border-radius:var(--radius);overflow:hidden;
+    background:var(--soft-2);margin-bottom:18px;
+  }
+  .tl__mob-img img{width:100%;height:100%;object-fit:cover;display:block}
+  .tl__mob-body p{font-size:15px;color:var(--body);line-height:1.6;margin-bottom:14px}
+  .tl__mob-body ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+  .tl__mob-body li{
+    display:flex;align-items:center;gap:10px;
+    font-size:14.5px;font-weight:500;color:var(--ink)
+  }
+  .tl__mob-body li svg{width:18px;height:18px;color:var(--blue);flex:none}
+
+  /* nav bar */
+  .tl__mob-nav{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:16px;padding:0 2px
+  }
+  .tl__mob-arr{
+    width:46px;height:46px;border-radius:50%;
+    border:1.5px solid var(--line);background:#fff;
+    display:grid;place-items:center;color:var(--ink);
+    transition:border-color .2s,color .2s,background .2s;
+    touch-action:manipulation;flex:none
+  }
+  .tl__mob-arr:active{border-color:var(--blue);color:var(--blue);background:var(--soft)}
+  .tl__mob-arr:disabled{opacity:.3;pointer-events:none}
+  .tl__mob-arr svg{width:20px;height:20px}
+
+  .tl__mob-dots{display:flex;gap:7px;align-items:center}
+  .tl__mob-dots button{
+    width:8px;height:8px;border-radius:50%;background:var(--line);
+    transition:.25s;touch-action:manipulation;flex:none
+  }
+  .tl__mob-dots button.active{background:var(--blue);width:24px;border-radius:4px}
 }
