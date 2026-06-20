@@ -391,7 +391,7 @@
   const sValIn=$('#s-val-num'), sMkt=$('#s-mkt');
   const sYearV=$('#s-year-v'), sYrPrev=$('#s-yr-prev'), sYrNext=$('#s-yr-next');
   const simSegs=$$('.sim__seg');
-  const rNum=$('#r-num'), rBadge=$('#r-badge'), rDesc=$('#r-desc'), rEconomy=$('#r-economy');
+  const rNum=$('#r-num'), rBadge=$('#r-badge'), rDesc=$('#r-desc'), rEconomy=$('#r-economy'), rInvest=$('#r-invest');
   const gFill=$('#g-fill'), gDot=$('#g-dot');
   const gBarFill=$('#g-bar-fill'), gBarDot=$('#g-bar-dot'), rNumMob=$('#r-num-mob');
 
@@ -442,7 +442,9 @@
     rBadge.textContent='⚠ '+level;
     rBadge.className='sim__gc-badge '+badgeCls;
 
-    const economy=Math.max(0,risk-1200);
+    const investVal=val>100000?450:350;
+    if(rInvest) rInvest.textContent='R$ '+fmt(investVal);
+    const economy=Math.max(0,risk-investVal);
     rEconomy.textContent='R$ '+fmt(economy);
 
     const segLabel=SEG_NAME[simSeg]||simSeg;
