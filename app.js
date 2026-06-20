@@ -391,7 +391,12 @@
   const sValIn=$('#s-val-num'), sMkt=$('#s-mkt');
   const sYearV=$('#s-year-v'), sYrPrev=$('#s-yr-prev'), sYrNext=$('#s-yr-next');
   const simSegs=$$('.sim__seg');
-  const rNum=$('#r-num'), rBadge=$('#r-badge'), rDesc=$('#r-desc'), rEconomy=$('#r-economy'), rInvest=$('#r-invest');
+  const rNum=$('#r-num'), rBadge=$('#r-badge'), rDesc=$('#r-desc'), rEconomy=$('#r-economy');
+  const rInvest=$('#r-invest'), rPriceBasica=$('#r-price-basica'), rPricePlus=$('#r-price-plus'), rPriceCsd=$('#r-price-csd');
+  const rFipeBasica=$('#r-fipe-basica'), rFipePlus=$('#r-fipe-plus'), rFipeCsd=$('#r-fipe-csd');
+  const rExtraFipe=$('#r-extra-fipe');
+  const avalOpts=$$('.sim__aval-opt');
+  let selectedSvc='basica';
   const gFill=$('#g-fill'), gDot=$('#g-dot');
   const gBarFill=$('#g-bar-fill'), gBarDot=$('#g-bar-dot'), rNumMob=$('#r-num-mob');
 
@@ -442,9 +447,26 @@
     rBadge.textContent='⚠ '+level;
     rBadge.className='sim__gc-badge '+badgeCls;
 
-    const investVal=val>100000?450:350;
-    if(rInvest) rInvest.textContent='R$ '+fmt(investVal);
-    const economy=Math.max(0,risk-investVal);
+    const priceBasica=val>100000?450:350;
+    const pricePlus=val>80000?850:650;
+
+    // CSD: preço sempre R$ 1.500; +2% da FIPE aparece só quando val > 100k
+    const priceCsdNum=1500;
+    const priceCsdDisplay='R$ 1.500';
+    const showExtraFipe=val>100000;
+
+    if(rInvest) rInvest.textContent='R$ '+fmt(priceBasica);
+    if(rPriceBasica) rPriceBasica.textContent='R$ '+fmt(priceBasica);
+    if(rPricePlus) rPricePlus.textContent='R$ '+fmt(pricePlus);
+    if(rPriceCsd) rPriceCsd.textContent=priceCsdDisplay;
+    if(rFipeBasica){rFipeBasica.textContent='até 100k da FIPE';rFipeBasica.style.display=val>100000?'none':'';}
+    if(rFipePlus){rFipePlus.textContent='até 80k da FIPE';rFipePlus.style.display=val>80000?'none':'';}
+    if(rFipeCsd){rFipeCsd.textContent='até 100k da FIPE';rFipeCsd.style.display=val>100000?'none':'';};
+    if(rExtraFipe) rExtraFipe.style.display=showExtraFipe?'':'none';
+
+    const prices={basica:priceBasica,plus:pricePlus,csd:priceCsdNum};
+    const selPrice=prices[selectedSvc]||priceBasica;
+    const economy=Math.max(0,risk-selPrice);
     rEconomy.textContent='R$ '+fmt(economy);
 
     const segLabel=SEG_NAME[simSeg]||simSeg;
@@ -478,6 +500,26 @@
     simSegs.forEach(x=>x.classList.toggle('active',x.dataset.seg===simSeg));
     simCalc();
   });
+
+  avalOpts.forEach(opt=>opt.addEventListener('click',()=>{
+    selectedSvc=opt.dataset.svc;
+    avalOpts.forEach(o=>o.classList.remove('sim__aval-opt--active'));
+    opt.classList.add('sim__aval-opt--active');
+    simCalc();
+  }));
+
+  // Abas mobile — Nossas Avaliações
+  (function initAvalTabs(){
+    const tabs=$$('.aval-tab');
+    const cards=$$('.aval-card[data-card-idx]');
+    if(!tabs.length||!cards.length) return;
+    function showTab(idx){
+      tabs.forEach((t,i)=>t.classList.toggle('aval-tab--active',i===idx));
+      cards.forEach((c,i)=>c.classList.toggle('aval-card--visible',i===idx));
+    }
+    tabs.forEach((t,i)=>t.addEventListener('click',()=>showTab(i)));
+    showTab(0); // inicia na Básica
+  })();
 
   sValIn.value=fmt(85000);
   updateMktSlider();
